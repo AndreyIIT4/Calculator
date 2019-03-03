@@ -78,8 +78,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
     public void operationComma(View view){
         if (commands.containsKey(Symbol.FIRST_DIGIT)
                 && getDouble(txtResult.getText().toString()) == getDouble(commands.get(Symbol.FIRST_DIGIT).toString()))
