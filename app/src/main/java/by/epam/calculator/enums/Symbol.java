@@ -2,8 +2,8 @@ package by.epam.calculator.enums;
 
 public enum Symbol {
 
-    FIRST_DIGIT,
+    FIRST_NUMBER,
     OPERATION,
-    SECOND_DIGIT
+    SECOND_NUMBER
 
 }

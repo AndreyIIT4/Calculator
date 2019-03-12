@@ -8,7 +8,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import java.util.EnumMap;
+
 import by.epam.calculator.calc.CalcOperations;
 import by.epam.calculator.enums.ActionType;
 import by.epam.calculator.enums.OperationType;
@@ -17,18 +19,20 @@ import by.epam.calculator.exceptions.DivisionByZeroException;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText txtResult;
     private EnumMap<Symbol, Object> commands = new EnumMap<>(Symbol.class);
+    EditText txtResult;
+    String nul = "0";
+    private ActionType lastAction;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         txtResult = findViewById(R.id.txtResult);
-
         Button add = findViewById(R.id.add);
         Button divide = findViewById(R.id.divide);
         Button multiply = findViewById(R.id.multiply);
@@ -38,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
         divide.setTag(OperationType.DIVIDE);
         multiply.setTag(OperationType.MULTIPLY);
         subtract.setTag(OperationType.SUBTRACT);
-
     }
 
     private void showToastMessage() {
@@ -47,70 +50,61 @@ public class MainActivity extends AppCompatActivity {
         toastMessage.show();
     }
 
-    public void operationMultiply(View view){
+    public void universalOperation(View view) {
         OperationType operType;
         operType = (OperationType) view.getTag();
-
         if (lastAction == ActionType.OPERAION) {
             commands.put(Symbol.OPERATION, operType);
-
             return;
         }
         if (!commands.containsKey(Symbol.OPERATION)) {
-
-            if (!commands.containsKey(Symbol.FIRST_DIGIT)) {
-                commands.put(Symbol.FIRST_DIGIT, txtResult.getText());
+            if (!commands.containsKey(Symbol.FIRST_NUMBER)) {
+                commands.put(Symbol.FIRST_NUMBER, txtResult.getText());
             }
             commands.put(Symbol.OPERATION, operType);
-        } else if (!commands.containsKey(Symbol.SECOND_DIGIT)) {
-            commands.put(Symbol.SECOND_DIGIT, txtResult.getText());
+        } else if (!commands.containsKey(Symbol.SECOND_NUMBER)) {
+            commands.put(Symbol.SECOND_NUMBER, txtResult.getText());
             doCalc();
             commands.put(Symbol.OPERATION, operType);
-            commands.remove(Symbol.SECOND_DIGIT);
+            commands.remove(Symbol.SECOND_NUMBER);
         }
         lastAction = ActionType.OPERAION;
     }
 
-    public void operationClear(View view){
-        txtResult.setText("0");
+    public void operationClear(View view) {
+        txtResult.setText(nul);
         commands.clear();
         lastAction = ActionType.CLEAR;
-
     }
 
-    public void operationComma(View view){
-        if (commands.containsKey(Symbol.FIRST_DIGIT)
-                && getDouble(txtResult.getText().toString()) == getDouble(commands.get(Symbol.FIRST_DIGIT).toString()))
-        {
-            txtResult.setText("0" + view.getContentDescription().toString());
+    public void operationComma(View view) {
+        String geTtext = txtResult.getText().toString();
+        if (getDouble(geTtext) == getDouble(commands.get(Symbol.FIRST_NUMBER).toString())) {
+            txtResult.setText(nul + view.getContentDescription().toString());
         }
-
-        if (!txtResult.getText().toString().contains(",")) {
-            txtResult.setText(txtResult.getText() + ",");
+        if (!geTtext.contains(",")) {
+            txtResult.setText(geTtext + ",");
         }
-
         lastAction = ActionType.COMMA;
     }
-    public void operationDelete(View view){
+
+    public void operationDelete(View view) {
+        String geTtext = txtResult.getText().toString();
         txtResult.setText(txtResult.getText().delete(
                 txtResult.getText().length() - 1,
                 txtResult.getText().length()));
-
-        if (txtResult.getText().toString().trim().length() == 0) {
-            txtResult.setText("0");
+        if (geTtext.trim().length() == 0) {
+            txtResult.setText(nul);
         }
-
         lastAction = ActionType.DELETE;
     }
-    public void operationResult(View view){
-        if (lastAction == ActionType.CALCULATION)
-        {
+
+    public void operationResult(View view) {
+        if (lastAction == ActionType.CALCULATION) {
             return;
         }
-
-        if (commands.containsKey(Symbol.FIRST_DIGIT)
-                && commands.containsKey(Symbol.OPERATION)) {
-            commands.put(Symbol.SECOND_DIGIT, txtResult.getText());
+        if (commands.containsKey(Symbol.FIRST_NUMBER) && commands.containsKey(Symbol.OPERATION)) {
+            commands.put(Symbol.SECOND_NUMBER, txtResult.getText());
             doCalc();
             commands.clear();
         }
@@ -118,55 +112,57 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private ActionType lastAction;
-
     public void buttonClick(View view) {
 
         switch (view.getId()) {
-            case R.id.add:
-            case R.id.subtract:
-            case R.id.divide:
+            case R.id.add: {
+                universalOperation(findViewById(R.id.add));
+                break;
+            }
+            case R.id.subtract: {
+                universalOperation(findViewById(R.id.subtract));
+                break;
+            }
+            case R.id.divide: {
+                universalOperation(findViewById(R.id.divide));
+                break;
+            }
             case R.id.multiply: {
-                operationMultiply(findViewById(R.id.multiply));
-
+                universalOperation(findViewById(R.id.multiply));
                 break;
             }
             case R.id.clear: {
                 operationClear(findViewById(R.id.clear));
-
                 break;
             }
             case R.id.result: {
                 operationResult(findViewById(R.id.result));
-
                 break;
             }
             case R.id.comma: {
                 operationComma(findViewById(R.id.comma));
-
                 break;
             }
             case R.id.delete: {
                 operationDelete(findViewById(R.id.delete));
-
                 break;
             }
-
             default: {
-                if (txtResult.getText().toString().equals("0")
-                        ||(commands.containsKey(Symbol.FIRST_DIGIT) && getDouble(txtResult.getText()) == getDouble(commands.get(Symbol.FIRST_DIGIT)))
+                String geTtext = txtResult.getText().toString();
+                if (geTtext.equals(nul)
+                        || (commands.containsKey(Symbol.FIRST_NUMBER) && getDouble(txtResult.getText()) == getDouble(commands.get(Symbol.FIRST_NUMBER)))
                         || (lastAction == ActionType.CALCULATION)
                 ) {
-
                     txtResult.setText(view.getContentDescription().toString());
                 } else {
-                    txtResult.setText(txtResult.getText()+ view.getContentDescription().toString());
+                    txtResult.setText(geTtext + view.getContentDescription().toString());
                 }
                 lastAction = ActionType.DIGIT;
             }
 
         }
     }
+
     private double getDouble(Object value) {
         double result = 0;
         try {
@@ -175,30 +171,25 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             result = 0;
         }
-
         return result;
     }
 
     private void doCalc() {
         OperationType operTypeTmp = (OperationType) commands.get(Symbol.OPERATION);
         double result = 0;
-
         try {
-            result = calc(operTypeTmp,getDouble(commands.get(Symbol.FIRST_DIGIT)),getDouble(commands.get(Symbol.SECOND_DIGIT)));
+            result = calc(operTypeTmp, getDouble(commands.get(Symbol.FIRST_NUMBER)), getDouble(commands.get(Symbol.SECOND_NUMBER)));
         } catch (DivisionByZeroException e) {
             showToastMessage();
             return;
         }
-
         if (result % 1 == 0) {
             txtResult.setText(String.valueOf((int) result));
         } else {
             txtResult.setText(String.valueOf(result));
         }
-
-        commands.put(Symbol.FIRST_DIGIT, result);
+        commands.put(Symbol.FIRST_NUMBER, result);
     }
-
 
 
     private Double calc(OperationType operType, double a, double b) {
@@ -216,9 +207,7 @@ public class MainActivity extends AppCompatActivity {
                 return CalcOperations.subtract(a, b);
             }
         }
-
         return null;
     }
-
 
 }
